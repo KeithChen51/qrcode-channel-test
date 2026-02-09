@@ -1,5 +1,5 @@
 # 后端构建镜像
-FROM maven:3.8-openjdk-8 AS builder
+FROM maven:3.9-eclipse-temurin-21 AS builder
 
 WORKDIR /app
 COPY pom.xml .
@@ -10,7 +10,7 @@ COPY src ./src
 RUN mvn clean package -DskipTests
 
 # 运行镜像
-FROM openjdk:8-jre-slim
+FROM eclipse-temurin:21-jre-alpine
 
 WORKDIR /app
 
