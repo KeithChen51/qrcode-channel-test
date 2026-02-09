@@ -1,0 +1,13 @@
+node_modules
+**/node_modules
+.git
+**/.vite
+**/dist
+**/build
+**/target
+target
+*.class
+**/vite.config.ts.timestamp-*
+**/.env
+.env
+.DS_Store

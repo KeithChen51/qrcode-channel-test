@@ -1,0 +1,30 @@
+# 生产环境配置
+spring:
+  datasource:
+    url: jdbc:mysql://${DB_HOST:localhost}:${DB_PORT:3306}/${DB_NAME:qrcode_channel}?useUnicode=true&characterEncoding=utf8&serverTimezone=GMT%2B8&useSSL=false
+    username: ${DB_USERNAME:root}
+    password: ${DB_PASSWORD:}
+    driver-class-name: com.mysql.cj.jdbc.Driver
+
+# 存储配置 - MinIO (Railway测试环境)
+storage:
+  type: minio
+  minio:
+    endpoint: ${MINIO_ENDPOINT:http://minio:9000}
+    access-key: ${MINIO_ACCESS_KEY:}
+    secret-key: ${MINIO_SECRET_KEY:}
+    bucket: ${MINIO_BUCKET:qrcode-images}
+
+# 微信配置
+wechat:
+  miniapp:
+    app-id: ${WECHAT_MINIAPP_APPID:}
+    secret: ${WECHAT_MINIAPP_SECRET:}
+  mp:
+    app-id: ${WECHAT_MP_APPID:}
+    secret: ${WECHAT_MP_SECRET:}
+
+# MyBatis日志关闭
+mybatis-plus:
+  configuration:
+    log-impl: org.apache.ibatis.logging.nologging.NoLoggingImpl
