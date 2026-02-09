@@ -15,15 +15,6 @@ storage:
     secret-key: ${MINIO_SECRET_KEY:}
     bucket: ${MINIO_BUCKET:qrcode-images}
 
-# 微信配置
-wechat:
-  miniapp:
-    app-id: ${WECHAT_MINIAPP_APPID:}
-    secret: ${WECHAT_MINIAPP_SECRET:}
-  mp:
-    app-id: ${WECHAT_MP_APPID:}
-    secret: ${WECHAT_MP_SECRET:}
-
 # MyBatis日志关闭
 mybatis-plus:
   configuration:

@@ -112,7 +112,11 @@ public class QrcodeServiceImpl extends ServiceImpl<QrcodeRecordMapper, QrcodeRec
     }
 
     private String encode(String value) {
-        return URLEncoder.encode(value, StandardCharsets.UTF_8);
+        try {
+            return URLEncoder.encode(value, StandardCharsets.UTF_8.name());
+        } catch (Exception e) {
+            throw new RuntimeException("Failed to encode url parameter", e);
+        }
     }
 
     private String extractObjectName(String url) {

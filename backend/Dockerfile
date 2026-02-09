@@ -25,4 +25,4 @@ COPY --from=builder /app/target/*.jar app.jar
 EXPOSE 8080
 
 # 启动命令
-ENTRYPOINT ["java", "-jar", "app.jar", "--spring.profiles.active=prod"]
+ENTRYPOINT ["sh", "-c", "java -jar app.jar --spring.profiles.active=${SPRING_PROFILES_ACTIVE:-prod} --server.port=${PORT:-8080}"]

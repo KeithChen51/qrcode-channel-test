@@ -11,3 +11,6 @@ target
 **/.env
 .env
 .DS_Store
+backend/run-local.args
+backend/*.log
+frontend/*.log

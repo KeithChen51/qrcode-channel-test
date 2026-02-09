@@ -15,11 +15,3 @@ storage:
     secret-key: minioadmin123
     bucket: qrcode-images
 
-# 微信配置 (开发环境可使用模拟模式)
-wechat:
-  miniapp:
-    app-id: ${WECHAT_MINIAPP_APPID:}
-    secret: ${WECHAT_MINIAPP_SECRET:}
-  mp:
-    app-id: ${WECHAT_MP_APPID:}
-    secret: ${WECHAT_MP_SECRET:}

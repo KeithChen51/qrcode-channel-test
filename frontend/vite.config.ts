@@ -10,7 +10,7 @@ export default defineConfig({
     vue(),
     AutoImport({
       resolvers: [ElementPlusResolver()],
-      imports: ['vue', 'vue-router', 'pinia'],
+      imports: ['vue', 'vue-router'],
       dts: 'src/auto-imports.d.ts',
     }),
     Components({
@@ -27,7 +27,7 @@ export default defineConfig({
     port: 5173,
     proxy: {
       '/api': {
-        target: 'http://localhost:8080',
+        target: 'http://localhost:18080',
         changeOrigin: true,
       },
     },

@@ -1,4 +1,4 @@
-package com.byd.qrcode.controller;
+﻿package com.byd.qrcode.controller;
 
 import com.byd.qrcode.common.Result;
 import com.byd.qrcode.dto.WechatConfigVO;
@@ -11,7 +11,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 /**
- * 微信配置管理Controller
+ * 微信配置管理 Controller
  */
 @RestController
 @RequestMapping("/api/wechat-configs")
@@ -20,9 +20,6 @@ public class WechatConfigController {
 
     private final WechatConfigService wechatConfigService;
 
-    /**
-     * 获取所有配置列表
-     */
     @GetMapping
     public Result<List<WechatConfigVO>> list() {
         List<WechatConfigVO> result = wechatConfigService.list().stream()
@@ -31,34 +28,22 @@ public class WechatConfigController {
         return Result.success(result);
     }
 
-    /**
-     * 获取当前激活的配置
-     */
     @GetMapping("/active")
     public Result<WechatConfigVO> getActive() {
         return Result.success(toVO(wechatConfigService.getActiveConfig()));
     }
 
-    /**
-     * 根据ID获取配置
-     */
     @GetMapping("/{id}")
     public Result<WechatConfigVO> getById(@PathVariable Integer id) {
         return Result.success(toVO(wechatConfigService.getById(id)));
     }
 
-    /**
-     * 创建配置
-     */
     @PostMapping
     public Result<WechatConfigVO> create(@RequestBody WechatConfig config) {
         wechatConfigService.save(config);
         return Result.success(toVO(config));
     }
 
-    /**
-     * 更新配置
-     */
     @PutMapping("/{id}")
     public Result<Boolean> update(@PathVariable Integer id, @RequestBody WechatConfig config) {
         WechatConfig exist = wechatConfigService.getById(id);
@@ -72,28 +57,14 @@ public class WechatConfigController {
         return Result.success(wechatConfigService.updateById(config));
     }
 
-    /**
-     * 删除配置
-     */
     @DeleteMapping("/{id}")
     public Result<Boolean> delete(@PathVariable Integer id) {
         return Result.success(wechatConfigService.removeById(id));
     }
 
-    /**
-     * 激活配置
-     */
     @PostMapping("/{id}/activate")
     public Result<Boolean> activate(@PathVariable Integer id) {
         return Result.success(wechatConfigService.setActiveConfig(id));
-    }
-
-    /**
-     * 测试配置
-     */
-    @PostMapping("/{id}/test")
-    public Result<Boolean> test(@PathVariable Integer id) {
-        return Result.success(wechatConfigService.testConfig(id));
     }
 
     private WechatConfigVO toVO(WechatConfig config) {

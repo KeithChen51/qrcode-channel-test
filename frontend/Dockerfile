@@ -9,6 +9,9 @@ RUN npm ci
 
 # 复制源码并构建
 COPY . .
+# Railway Docker 构建阶段变量需要通过 ARG 显式声明
+ARG VITE_API_BASE_URL
+ENV VITE_API_BASE_URL=$VITE_API_BASE_URL
 RUN npm run build
 
 # 运行阶段 - 使用Nginx
