@@ -1,11 +1,10 @@
-<template>
+﻿<template>
   <div class="scan-dashboard">
     <div class="page-header">
       <h1>扫码看板</h1>
       <p>查看扫码统计数据</p>
     </div>
 
-    <!-- 统计卡片 -->
     <div class="stats-grid">
       <el-card shadow="hover">
         <div class="stat-card">
@@ -56,17 +55,28 @@
       </el-card>
     </div>
 
-    <!-- 扫码记录列表 -->
     <el-card>
       <template #header>
         <span>扫码记录</span>
       </template>
 
       <el-table :data="scanList" v-loading="loading" stripe>
-        <el-table-column prop="scanId" label="扫码ID" width="200" />
-        <el-table-column prop="storeName" label="门店" />
-        <el-table-column prop="staffName" label="员工" />
-        <el-table-column prop="campaignName" label="活动" />
+        <el-table-column prop="scanId" label="扫码ID" width="220" />
+        <el-table-column label="门店">
+          <template #default="{ row }">
+            {{ formatLabel(row.storeName, row.storeId) }}
+          </template>
+        </el-table-column>
+        <el-table-column label="员工">
+          <template #default="{ row }">
+            {{ formatLabel(row.staffName, row.staffId) }}
+          </template>
+        </el-table-column>
+        <el-table-column label="活动">
+          <template #default="{ row }">
+            {{ formatLabel(row.campaignName, row.campaignId) }}
+          </template>
+        </el-table-column>
         <el-table-column label="注册状态">
           <template #default="{ row }">
             <el-tag :type="row.isRegistered ? 'success' : 'info'">
@@ -88,6 +98,16 @@ import { getScanList, getScanStats } from '@/api'
 const loading = ref(false)
 const scanList = ref<any[]>([])
 const stats = ref<any>({})
+
+const formatLabel = (name?: string, id?: string | number) => {
+  if (name && String(name).trim().length > 0) {
+    return name
+  }
+  if (id !== null && id !== undefined && String(id).trim().length > 0) {
+    return String(id)
+  }
+  return '-'
+}
 
 const fetchData = async () => {
   loading.value = true
@@ -122,12 +142,12 @@ onMounted(() => {
     align-items: center;
     margin-bottom: 12px;
   }
-  
+
   .stat-title {
     font-size: 14px;
     color: var(--text-secondary);
   }
-  
+
   .stat-value {
     font-size: 32px;
     font-weight: 700;
