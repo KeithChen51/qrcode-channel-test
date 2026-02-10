@@ -1,4 +1,4 @@
-﻿package com.byd.qrcode.service.impl;
+package com.byd.qrcode.service.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;

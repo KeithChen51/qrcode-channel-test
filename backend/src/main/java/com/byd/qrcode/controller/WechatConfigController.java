@@ -1,4 +1,4 @@
-﻿package com.byd.qrcode.controller;
+package com.byd.qrcode.controller;
 
 import com.byd.qrcode.common.Result;
 import com.byd.qrcode.dto.WechatConfigVO;

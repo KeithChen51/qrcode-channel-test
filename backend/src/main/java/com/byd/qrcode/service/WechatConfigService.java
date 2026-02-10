@@ -1,4 +1,4 @@
-﻿package com.byd.qrcode.service;
+package com.byd.qrcode.service;
 
 import com.baomidou.mybatisplus.extension.service.IService;
 import com.byd.qrcode.entity.WechatConfig;
