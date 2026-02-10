@@ -37,6 +37,7 @@ export const activateConfig = (id: number) => request.post(`/wechat-configs/${id
 // ========== 二维码 API ==========
 export const generateQrcode = (data: any) => request.post('/qrcodes', data)
 export const getQrcodeList = (params?: any) => request.get('/qrcodes', { params })
+export const getQrcodeById = (id: number) => request.get(`/qrcodes/${id}`)
 export const deleteQrcode = (id: number) => request.delete(`/qrcodes/${id}`)
 export const batchDeleteQrcode = (ids: number[]) => request.post('/qrcodes/batch-delete', ids)
 
