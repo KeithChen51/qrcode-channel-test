@@ -10,6 +10,7 @@ import com.byd.qrcode.service.CampaignService;
 import com.byd.qrcode.service.QrcodeService;
 import com.byd.qrcode.service.ScanRecordService;
 import com.byd.qrcode.service.WechatConfigService;
+import com.byd.qrcode.service.WechatUrlLinkService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -34,6 +35,7 @@ public class PublicLandingController {
     private final ScanRecordService scanRecordService;
     private final CampaignService campaignService;
     private final WechatConfigService wechatConfigService;
+    private final WechatUrlLinkService wechatUrlLinkService;
 
     @GetMapping("/landing")
     public Result<LandingResponseDTO> landing(
@@ -52,6 +54,11 @@ public class PublicLandingController {
         dto.setScanId(scanRecord.getScanId());
         String jumpUrlLink = buildJumpUrlLink(record, scanRecord.getScanId());
         dto.setUrlLink(jumpUrlLink);
+        WechatConfig config = findConfigForRecord(record);
+        String fullScene = buildFullScene(record, buildTrackingParams(record, scanRecord.getScanId()));
+        dto.setMiniProgramOriginalId(config != null ? config.getOriginalId() : null);
+        dto.setMiniProgramPath(buildMiniProgramPath(config != null ? config.getPagePath() : null, fullScene));
+        dto.setMiniProgramEnvVersion(resolveEnvVersion(record.getEnvVersion(), config != null ? config.getDefaultEnvVersion() : null));
 
         Campaign campaign = record.getCampaignId() == null
                 ? null
@@ -82,9 +89,7 @@ public class PublicLandingController {
     private String buildJumpUrlLink(QrcodeRecord record, String scanId) {
         String trackingParams = buildTrackingParams(record, scanId);
 
-        WechatConfig config = record.getConfigId() == null
-                ? null
-                : wechatConfigService.getById(record.getConfigId());
+        WechatConfig config = findConfigForRecord(record);
         String appId = StringUtils.hasText(record.getAppId())
                 ? record.getAppId()
                 : (config != null ? config.getAppId() : null);
@@ -93,13 +98,46 @@ public class PublicLandingController {
         // 优先按当前配置动态拼接，确保每次访问都携带 sid/qid/cid/s/f
         if (StringUtils.hasText(appId) && StringUtils.hasText(pagePath)) {
             String fullScene = buildFullScene(record, trackingParams);
-            return "weixin://dl/business/?appid=" + encode(appId)
-                    + "&path=" + encode(pagePath)
-                    + "&query=" + encode(fullScene);
+            String urlLink = wechatUrlLinkService.generateUrlLink(config, fullScene, record.getEnvVersion());
+            if (StringUtils.hasText(urlLink)) {
+                return urlLink;
+            }
+            return buildFallbackUrlLink(appId, pagePath, fullScene);
         }
 
         // 兼容历史数据：若已有 urlLink，则在其 scene 里补充 sid/qid/cid 参数
         return appendTrackingToLegacyUrl(record.getUrlLink(), trackingParams);
+    }
+
+    private WechatConfig findConfigForRecord(QrcodeRecord record) {
+        if (record == null || record.getConfigId() == null) {
+            return null;
+        }
+        return wechatConfigService.getById(record.getConfigId());
+    }
+
+    private String buildFallbackUrlLink(String appId, String pagePath, String scene) {
+        return "weixin://dl/business/?appid=" + encode(appId)
+                + "&path=" + encode(pagePath)
+                + "&query=" + encode(scene);
+    }
+
+    private String buildMiniProgramPath(String pagePath, String fullScene) {
+        if (!StringUtils.hasText(pagePath)) {
+            return null;
+        }
+        if (!StringUtils.hasText(fullScene)) {
+            return pagePath;
+        }
+        return pagePath + (pagePath.contains("?") ? "&" : "?") + fullScene;
+    }
+
+    private String resolveEnvVersion(String recordEnvVersion, String defaultEnvVersion) {
+        String env = StringUtils.hasText(recordEnvVersion) ? recordEnvVersion : defaultEnvVersion;
+        if ("trial".equals(env) || "develop".equals(env) || "release".equals(env)) {
+            return env;
+        }
+        return "release";
     }
 
     private String buildFullScene(QrcodeRecord record, String trackingParams) {
@@ -128,8 +166,11 @@ public class PublicLandingController {
 
         int queryIndex = urlLink.indexOf("query=");
         if (queryIndex < 0) {
-            char separator = urlLink.contains("?") ? '&' : '?';
-            return urlLink + separator + "query=" + encode(trackingParams);
+            if (urlLink.startsWith("weixin://")) {
+                char separator = urlLink.contains("?") ? '&' : '?';
+                return urlLink + separator + "query=" + encode(trackingParams);
+            }
+            return urlLink;
         }
 
         int valueStart = queryIndex + "query=".length();

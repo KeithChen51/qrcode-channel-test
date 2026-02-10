@@ -21,6 +21,8 @@
 - `MINIO_BUCKET=qrcode-images`
 - `APP_BASE_URL=<frontend public url>`
 - `APP_CORS_ALLOWED_ORIGINS=<frontend public url>`
+- `WECHAT_MP_APPID=<wechat official-account appid>`
+- `WECHAT_MP_SECRET=<wechat official-account appsecret>`
 
 ### 2.2 frontend（构建时变量）
 - `VITE_API_BASE_URL=<backend public url>/api`

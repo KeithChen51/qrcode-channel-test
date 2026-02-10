@@ -30,3 +30,8 @@ app:
   base-url: ${APP_BASE_URL:http://localhost:8080}
   cors:
     allowed-origins: ${APP_CORS_ALLOWED_ORIGINS:*}
+
+wechat:
+  # For wx-open-launch-weapp signature in WeChat browser.
+  mp-app-id: ${WECHAT_MP_APPID:}
+  mp-app-secret: ${WECHAT_MP_SECRET:}

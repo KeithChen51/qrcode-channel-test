@@ -9,6 +9,7 @@ import com.byd.qrcode.service.QrcodeGeneratorService;
 import com.byd.qrcode.service.QrcodeService;
 import com.byd.qrcode.service.StorageService;
 import com.byd.qrcode.service.WechatConfigService;
+import com.byd.qrcode.service.WechatUrlLinkService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -29,6 +30,7 @@ import java.util.List;
 public class QrcodeServiceImpl extends ServiceImpl<QrcodeRecordMapper, QrcodeRecord> implements QrcodeService {
 
     private final WechatConfigService wechatConfigService;
+    private final WechatUrlLinkService wechatUrlLinkService;
     private final QrcodeGeneratorService qrcodeGeneratorService;
     private final StorageService storageService;
 
@@ -54,9 +56,10 @@ public class QrcodeServiceImpl extends ServiceImpl<QrcodeRecordMapper, QrcodeRec
         QrcodeRecord record = new QrcodeRecord();
         record.setConfigId(config.getId());
         record.setAppId(config.getAppId());
-        record.setEnvVersion(StringUtils.hasText(request.getEnvVersion())
+        String envVersion = StringUtils.hasText(request.getEnvVersion())
                 ? request.getEnvVersion()
-                : config.getDefaultEnvVersion());
+                : config.getDefaultEnvVersion();
+        record.setEnvVersion(envVersion);
         record.setStoreId(request.getStoreId());
         record.setStoreName(request.getStoreName());
         record.setStaffId(request.getStaffId());
@@ -67,7 +70,10 @@ public class QrcodeServiceImpl extends ServiceImpl<QrcodeRecordMapper, QrcodeRec
         save(record);
 
         String jumpPageUrl = buildJumpPageUrl(record.getId());
-        String urlLink = buildFallbackUrlLink(config.getAppId(), config.getPagePath(), scene);
+        String urlLink = wechatUrlLinkService.generateUrlLink(config, scene, envVersion);
+        if (!StringUtils.hasText(urlLink)) {
+            urlLink = buildFallbackUrlLink(config.getAppId(), config.getPagePath(), scene);
+        }
 
         byte[] qrcodeImage = qrcodeGeneratorService.generate(jumpPageUrl);
         String objectName = String.format("qrcode/%d/%d.png", config.getId(), record.getId());

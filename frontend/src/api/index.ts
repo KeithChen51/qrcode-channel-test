@@ -53,5 +53,7 @@ export const deleteCampaign = (id: number) => request.delete(`/campaigns/${id}`)
 
 // ========== 落地页 API ==========
 export const getLandingData = (qid: number) => request.get('/public/landing', { params: { qid } })
+export const getWechatJssdkSignature = (url: string) =>
+    request.get('/public/wechat-jssdk/signature', { params: { url } })
 
 export default request

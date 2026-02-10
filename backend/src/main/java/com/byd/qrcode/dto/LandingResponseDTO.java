@@ -21,4 +21,19 @@ public class LandingResponseDTO {
     private String backgroundColor;
     private String logoUrl;
     private String backgroundImageUrl;
+
+    /**
+     * Mini program original id (gh_xxx), used by wechat open tag.
+     */
+    private String miniProgramOriginalId;
+
+    /**
+     * Mini program path with query, used by wechat open tag.
+     */
+    private String miniProgramPath;
+
+    /**
+     * Mini program env version: release/trial/develop.
+     */
+    private String miniProgramEnvVersion;
 }
