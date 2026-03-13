@@ -1,5 +1,8 @@
 # Railway 分离部署说明（方案B）
 
+> 适用范围：Railway 历史测试环境。
+> 主文档入口：`doc/从代码到落地部署指南.md`。公司环境部署请优先看主文档里的单机 Ubuntu 或 K8S 章节。
+
 ## 1. 部署拓扑
 1. `frontend`：静态站点（Vite build + Nginx）
 2. `backend`：Spring Boot API
