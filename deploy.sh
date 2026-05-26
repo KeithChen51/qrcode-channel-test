@@ -1,80 +1,105 @@
 #!/bin/bash
-# 单机 Ubuntu 生产环境部署脚本
 
 set -euo pipefail
 
 COMPOSE_FILE="docker-compose.prod.yml"
 COMPOSE_CMD=(docker compose -f "$COMPOSE_FILE")
+BACKEND_PORT="${BACKEND_PORT:-8080}"
 
 echo "======================================"
-echo "地推渠道活码系统 - 生产环境部署"
+echo "QR code channel system - backend deploy"
 echo "======================================"
 
 if ! command -v docker >/dev/null 2>&1; then
-    echo "错误: 未检测到 docker，请先安装 Docker Engine 与 Compose Plugin"
+    echo "ERROR: docker is not installed."
     exit 1
 fi
 
 if ! docker compose version >/dev/null 2>&1; then
-    echo "错误: 未检测到 docker compose，请先安装 Docker Compose Plugin"
+    echo "ERROR: docker compose plugin is not installed."
     exit 1
 fi
 
 if ! command -v curl >/dev/null 2>&1; then
-    echo "错误: 未检测到 curl，请先安装 curl"
+    echo "ERROR: curl is not installed."
     exit 1
 fi
 
-# 检查.env文件
 if [ ! -f .env ]; then
-    echo "错误: .env 文件不存在!"
-    echo "请复制 .env.example 为 .env 并配置环境变量"
+    echo "ERROR: .env does not exist."
+    echo "Copy .env.example to .env and fill in production values first."
     exit 1
 fi
 
-# 加载环境变量供脚本输出和 Compose 校验使用
 set -a
 . ./.env
 set +a
 
+BACKEND_PORT="${BACKEND_PORT:-8080}"
+DB_HOST="${DB_HOST:-mysql}"
+
 echo ""
-echo "1. 校验 Compose 配置..."
+echo "1. Validate compose config..."
 "${COMPOSE_CMD[@]}" config >/dev/null
 
-echo ""
-echo "2. 停止旧容器..."
-"${COMPOSE_CMD[@]}" down || true
+if [ "$DB_HOST" = "mysql" ]; then
+    echo ""
+    echo "2. Start bundled MySQL..."
+    "${COMPOSE_CMD[@]}" up -d mysql
+
+    echo ""
+    echo "3. Wait for MySQL health check..."
+    MYSQL_CONTAINER="$("${COMPOSE_CMD[@]}" ps -q mysql)"
+    for _ in $(seq 1 30); do
+        MYSQL_STATUS="$(docker inspect -f '{{if .State.Health}}{{.State.Health.Status}}{{else}}{{.State.Status}}{{end}}' "$MYSQL_CONTAINER" 2>/dev/null || true)"
+        if [ "$MYSQL_STATUS" = "healthy" ] || [ "$MYSQL_STATUS" = "running" ]; then
+            break
+        fi
+        sleep 2
+    done
+
+    if [ "$MYSQL_STATUS" != "healthy" ] && [ "$MYSQL_STATUS" != "running" ]; then
+        echo "ERROR: bundled MySQL did not become healthy. Current status: ${MYSQL_STATUS:-unknown}"
+        "${COMPOSE_CMD[@]}" logs --tail=100 mysql
+        exit 1
+    fi
+else
+    echo ""
+    echo "2. Skip bundled MySQL because DB_HOST=$DB_HOST."
+fi
 
 echo ""
-echo "3. 构建并启动服务..."
-"${COMPOSE_CMD[@]}" up -d --build --remove-orphans
+echo "4. Build and start backend..."
+"${COMPOSE_CMD[@]}" up -d --build backend
 
 echo ""
-echo "4. 检查容器状态..."
-"${COMPOSE_CMD[@]}" ps
-
-echo ""
-echo "5. 等待健康检查通过..."
-for i in $(seq 1 30); do
-    if curl -fsS http://127.0.0.1/api/health >/dev/null 2>&1; then
+echo "5. Check backend health on localhost:${BACKEND_PORT}..."
+for _ in $(seq 1 30); do
+    if curl -fsS "http://127.0.0.1:${BACKEND_PORT}/api/health" >/dev/null 2>&1; then
         break
     fi
     sleep 2
 done
 
-if ! curl -fsS http://127.0.0.1/api/health >/dev/null 2>&1; then
-    echo "错误: 健康检查未通过，输出最近日志供排查"
-    "${COMPOSE_CMD[@]}" logs --tail=100
+if ! curl -fsS "http://127.0.0.1:${BACKEND_PORT}/api/health" >/dev/null 2>&1; then
+    echo "ERROR: backend health check failed. Recent logs:"
+    "${COMPOSE_CMD[@]}" logs --tail=100 backend
     exit 1
 fi
 
 echo ""
 echo "======================================"
-echo "部署完成!"
+echo "Backend deploy complete."
 echo ""
-echo "访问地址:"
-echo "  - 前端入口: http://localhost"
-echo "  - 健康检查: http://localhost/api/health"
+echo "Company Nginx should serve frontend/dist and proxy /api/ to:"
+echo "  http://127.0.0.1:${BACKEND_PORT}"
 echo ""
-echo "查看日志: docker compose -f $COMPOSE_FILE logs -f"
+echo "Reference config:"
+echo "  deploy/nginx/qrcode-channel.conf"
+echo ""
+echo "Health check:"
+echo "  http://127.0.0.1:${BACKEND_PORT}/api/health"
+echo ""
+echo "Logs:"
+echo "  docker compose -f $COMPOSE_FILE logs -f backend"
 echo "======================================"

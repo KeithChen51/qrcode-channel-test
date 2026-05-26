@@ -70,9 +70,11 @@
               v-if="row.qrcodeUrl"
               :src="row.qrcodeUrl"
               :preview-src-list="[row.qrcodeUrl]"
+              preview-teleported
+              hide-on-click-modal
               style="width: 56px; height: 56px; cursor: pointer"
               fit="contain"
-              @click.stop="openDetail(row)"
+              @click.stop
             />
             <span v-else>-</span>
           </template>

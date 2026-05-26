@@ -27,6 +27,8 @@ services:
       dockerfile: Dockerfile
     container_name: qrcode-backend
     restart: always
+    ports:
+      - "${BACKEND_BIND_HOST:-127.0.0.1}:${BACKEND_PORT:-8080}:8080"
     environment:
       - SPRING_PROFILES_ACTIVE=prod
       - DB_HOST=${DB_HOST:-mysql}
@@ -38,24 +40,6 @@ services:
       - APP_CORS_ALLOWED_ORIGINS=${APP_CORS_ALLOWED_ORIGINS:-*}
       - WECHAT_MP_APPID=${WECHAT_MP_APPID:-}
       - WECHAT_MP_SECRET=${WECHAT_MP_SECRET:-}
-    depends_on:
-      mysql:
-        condition: service_healthy
-    networks:
-      - qrcode-network
-
-  frontend:
-    build:
-      context: ./frontend
-      dockerfile: Dockerfile
-      args:
-        VITE_API_BASE_URL: ${VITE_API_BASE_URL:-/api}
-    container_name: qrcode-frontend
-    restart: always
-    ports:
-      - "80:80"
-    depends_on:
-      - backend
     networks:
       - qrcode-network
 
