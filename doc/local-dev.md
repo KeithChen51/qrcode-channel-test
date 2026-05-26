@@ -1,30 +1,29 @@
-# 本地开发启动（统一流程）
+# Local Development
 
-## 目标
-- 仅保留一套本地启动方式，避免临时参数和多套命令并存。
-- 仅保留一个业务健康检查接口：`GET /api/health`。
+## Goal
+- Keep one standard local startup flow.
+- Use `GET /api/health` as the application health check.
+- Generate QR code images dynamically from the backend; no object storage service is required.
 
-## 前置环境
-- JDK 21（IDE 运行后端）
+## Prerequisites
+- JDK 21
 - Node.js 18+
-- Docker Desktop（用于 MySQL + MinIO）
+- Docker Desktop, only for MySQL
 
-## 启动步骤
-1. 在项目根目录启动基础依赖：
-   - `docker compose up -d mysql minio minio-init`
-2. 在 IDE 中启动后端主类：
-   - 主类：`com.byd.qrcode.QrcodeChannelApplication`
-   - Profile：`dev`
-   - 端口：使用默认 `8080`（不要再额外覆盖端口）
-3. 在 `frontend` 目录启动前端：
+## Startup
+1. Start the database from the project root:
+   - `docker compose up -d mysql`
+2. Start the backend from the IDE:
+   - Main class: `com.byd.qrcode.QrcodeChannelApplication`
+   - Profile: `dev`
+   - Port: default `8080`
+3. Start the frontend from `frontend`:
    - `npm run dev -- --host 127.0.0.1 --port 5173 --strictPort`
 
-## 验证
-- 后端健康检查：
-  - `http://127.0.0.1:8080/api/health`
-- 前端页面：
-  - `http://127.0.0.1:5173`
+## Verification
+- Backend health: `http://127.0.0.1:8080/api/health`
+- Frontend: `http://127.0.0.1:5173`
 
-## 约束
-- 不再使用临时参数文件（例如 `backend/run-local.args`）作为标准启动方式。
-- 不再依赖 `/actuator/health` 作为本项目健康检查入口。
+## Constraints
+- Do not use temporary parameter files such as `backend/run-local.args` as the standard startup path.
+- Do not use `/actuator/health` as this project's health endpoint.

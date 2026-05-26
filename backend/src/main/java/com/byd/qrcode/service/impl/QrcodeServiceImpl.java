@@ -5,13 +5,10 @@ import com.byd.qrcode.dto.QrcodeGenerateRequest;
 import com.byd.qrcode.entity.QrcodeRecord;
 import com.byd.qrcode.entity.WechatConfig;
 import com.byd.qrcode.mapper.QrcodeRecordMapper;
-import com.byd.qrcode.service.QrcodeGeneratorService;
 import com.byd.qrcode.service.QrcodeService;
-import com.byd.qrcode.service.StorageService;
 import com.byd.qrcode.service.WechatConfigService;
 import com.byd.qrcode.service.WechatUrlLinkService;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -24,15 +21,12 @@ import java.util.List;
 /**
  * 二维码服务实现（仅方案B：H5中转）
  */
-@Slf4j
 @Service
 @RequiredArgsConstructor
 public class QrcodeServiceImpl extends ServiceImpl<QrcodeRecordMapper, QrcodeRecord> implements QrcodeService {
 
     private final WechatConfigService wechatConfigService;
     private final WechatUrlLinkService wechatUrlLinkService;
-    private final QrcodeGeneratorService qrcodeGeneratorService;
-    private final StorageService storageService;
 
     @Value("${app.base-url:http://localhost:8080}")
     private String baseUrl;
@@ -75,13 +69,9 @@ public class QrcodeServiceImpl extends ServiceImpl<QrcodeRecordMapper, QrcodeRec
             urlLink = buildFallbackUrlLink(config.getAppId(), config.getPagePath(), scene);
         }
 
-        byte[] qrcodeImage = qrcodeGeneratorService.generate(jumpPageUrl);
-        String objectName = String.format("qrcode/%d/%d.png", config.getId(), record.getId());
-        String qrcodeUrl = storageService.upload(objectName, qrcodeImage, "image/png");
-
         record.setJumpPageUrl(jumpPageUrl);
         record.setUrlLink(urlLink);
-        record.setQrcodeUrl(qrcodeUrl);
+        record.setQrcodeUrl(buildQrcodeImageUrl(record.getId()));
         updateById(record);
 
         return record;
@@ -90,25 +80,21 @@ public class QrcodeServiceImpl extends ServiceImpl<QrcodeRecordMapper, QrcodeRec
     @Override
     @Transactional
     public boolean batchDelete(List<Integer> ids) {
-        List<QrcodeRecord> records = listByIds(ids);
-        for (QrcodeRecord record : records) {
-            if (record.getQrcodeUrl() != null) {
-                try {
-                    String objectName = extractObjectName(record.getQrcodeUrl());
-                    storageService.delete(objectName);
-                } catch (Exception e) {
-                    log.warn("Failed to delete qrcode image: {}", record.getQrcodeUrl(), e);
-                }
-            }
-        }
         return removeByIds(ids);
     }
 
     private String buildJumpPageUrl(Integer qrcodeId) {
-        String normalizedBaseUrl = baseUrl.endsWith("/")
+        return String.format("%s/jump?qid=%d", normalizedBaseUrl(), qrcodeId);
+    }
+
+    private String buildQrcodeImageUrl(Integer qrcodeId) {
+        return String.format("%s/api/qrcodes/%d/image", normalizedBaseUrl(), qrcodeId);
+    }
+
+    private String normalizedBaseUrl() {
+        return baseUrl.endsWith("/")
                 ? baseUrl.substring(0, baseUrl.length() - 1)
                 : baseUrl;
-        return String.format("%s/jump?qid=%d", normalizedBaseUrl, qrcodeId);
     }
 
     private String buildFallbackUrlLink(String appId, String pagePath, String scene) {
@@ -125,9 +111,4 @@ public class QrcodeServiceImpl extends ServiceImpl<QrcodeRecordMapper, QrcodeRec
         }
     }
 
-    private String extractObjectName(String url) {
-        int bucketEnd = url.indexOf('/', url.indexOf("://") + 3);
-        bucketEnd = url.indexOf('/', bucketEnd + 1);
-        return url.substring(bucketEnd + 1);
-    }
 }

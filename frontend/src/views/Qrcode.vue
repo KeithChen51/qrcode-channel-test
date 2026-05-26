@@ -83,9 +83,10 @@
         <el-table-column prop="staffName" label="员工名称" min-width="120" />
         <el-table-column prop="scanCount" label="扫码次数" width="90" />
         <el-table-column prop="registerCount" label="注册次数" width="90" />
-        <el-table-column label="操作" width="130" fixed="right">
+        <el-table-column label="操作" width="180" fixed="right">
           <template #default="{ row }">
             <el-button text type="primary" @click.stop="openDetail(row)">详情</el-button>
+            <el-button text type="primary" @click.stop="downloadQrcode(row)">下载</el-button>
             <el-button text type="danger" @click.stop="handleDelete(row)">删除</el-button>
           </template>
         </el-table-column>
@@ -133,6 +134,7 @@
             <el-input :model-value="detailRecord.qrcodeUrl || ''" readonly />
             <el-button @click="copyText(detailRecord.qrcodeUrl)">复制</el-button>
             <el-button type="primary" plain @click="openExternal(detailRecord.qrcodeUrl)">打开</el-button>
+            <el-button type="primary" @click="downloadQrcode(detailRecord)">下载</el-button>
           </div>
           <el-image
             v-if="detailRecord.qrcodeUrl"
@@ -222,6 +224,24 @@ const displayValue = (value: unknown) => {
 const openExternal = (url?: string) => {
   if (!url) {
     ElMessage.warning('链接为空')
+    return
+  }
+  window.open(url, '_blank', 'noopener')
+}
+
+const buildDownloadUrl = (url?: string) => {
+  if (!url) {
+    return ''
+  }
+  const parsed = new URL(url, window.location.origin)
+  parsed.searchParams.set('download', 'true')
+  return parsed.toString()
+}
+
+const downloadQrcode = (record?: QrcodeRecord | null) => {
+  const url = buildDownloadUrl(record?.qrcodeUrl)
+  if (!url) {
+    ElMessage.warning('二维码图片为空')
     return
   }
   window.open(url, '_blank', 'noopener')
@@ -365,7 +385,7 @@ onMounted(async () => {
 
 .url-row {
   display: grid;
-  grid-template-columns: 1fr auto auto;
+  grid-template-columns: 1fr auto auto auto;
   gap: 8px;
 }
 </style>

@@ -1,5 +1,4 @@
 services:
-  # MySQL 数据库
   mysql:
     image: mysql:5.7
     container_name: qrcode-mysql-prod
@@ -22,43 +21,6 @@ services:
       timeout: 5s
       retries: 5
 
-  # MinIO 对象存储（生产环境可替换为华为云OBS）
-  minio:
-    image: minio/minio:latest
-    container_name: qrcode-minio-prod
-    restart: always
-    ports:
-      - "127.0.0.1:9001:9001"
-    environment:
-      MINIO_ROOT_USER: ${MINIO_ROOT_USER:-minioadmin}
-      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD:-your_secure_password}
-    volumes:
-      - minio_data:/data
-    command: server /data --console-address ":9001"
-    networks:
-      - qrcode-network
-
-  # MinIO 初始化（创建 bucket 并设置匿名可读）
-  minio-init:
-    image: minio/mc:latest
-    container_name: qrcode-minio-init-prod
-    restart: "no"
-    depends_on:
-      - minio
-    entrypoint:
-      - /bin/sh
-      - -c
-      - |
-        until mc alias set local http://minio:9000 "${MINIO_ROOT_USER:-minioadmin}" "${MINIO_ROOT_PASSWORD:-your_secure_password}"; do
-          echo "waiting for minio..."
-          sleep 2
-        done
-        mc mb local/${MINIO_BUCKET:-qrcode-images} --ignore-existing
-        mc anonymous set public local/${MINIO_BUCKET:-qrcode-images}
-    networks:
-      - qrcode-network
-
-  # 后端服务
   backend:
     build:
       context: ./backend
@@ -72,11 +34,6 @@ services:
       - DB_NAME=${DB_NAME:-qrcode_channel}
       - DB_USERNAME=${DB_USERNAME:-root}
       - DB_PASSWORD=${DB_PASSWORD:-your_secure_password}
-      - STORAGE_TYPE=minio
-      - MINIO_ENDPOINT=${MINIO_ENDPOINT:-http://minio:9000}
-      - MINIO_ACCESS_KEY=${MINIO_ACCESS_KEY:-minioadmin}
-      - MINIO_SECRET_KEY=${MINIO_SECRET_KEY:-your_secure_password}
-      - MINIO_BUCKET=${MINIO_BUCKET:-qrcode-images}
       - APP_BASE_URL=${APP_BASE_URL:-http://localhost}
       - APP_CORS_ALLOWED_ORIGINS=${APP_CORS_ALLOWED_ORIGINS:-*}
       - WECHAT_MP_APPID=${WECHAT_MP_APPID:-}
@@ -84,12 +41,9 @@ services:
     depends_on:
       mysql:
         condition: service_healthy
-      minio-init:
-        condition: service_completed_successfully
     networks:
       - qrcode-network
 
-  # 前端服务
   frontend:
     build:
       context: ./frontend
@@ -107,7 +61,6 @@ services:
 
 volumes:
   mysql_data:
-  minio_data:
 
 networks:
   qrcode-network:
