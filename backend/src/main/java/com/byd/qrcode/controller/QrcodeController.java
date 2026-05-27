@@ -5,14 +5,15 @@ import com.byd.qrcode.dto.QrcodeGenerateRequest;
 import com.byd.qrcode.entity.QrcodeRecord;
 import com.byd.qrcode.service.QrcodeGeneratorService;
 import com.byd.qrcode.service.QrcodeService;
+import com.byd.qrcode.web.PublicUrlResolver;
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.ContentDisposition;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import javax.servlet.http.HttpServletRequest;
 import javax.validation.Valid;
 import java.util.List;
 
@@ -26,16 +27,16 @@ public class QrcodeController {
 
     private final QrcodeService qrcodeService;
     private final QrcodeGeneratorService qrcodeGeneratorService;
-
-    @Value("${app.base-url:http://localhost:8080}")
-    private String baseUrl;
+    private final PublicUrlResolver publicUrlResolver;
 
     /**
      * 生成二维码
      */
     @PostMapping
-    public Result<QrcodeRecord> generate(@Valid @RequestBody QrcodeGenerateRequest request) {
-        return Result.success(attachImageUrl(qrcodeService.generate(request)));
+    public Result<QrcodeRecord> generate(
+            @Valid @RequestBody QrcodeGenerateRequest request,
+            HttpServletRequest httpRequest) {
+        return Result.success(attachPublicUrls(qrcodeService.generate(request), httpRequest));
     }
 
     /**
@@ -44,13 +45,14 @@ public class QrcodeController {
     @GetMapping
     public Result<List<QrcodeRecord>> list(
             @RequestParam(required = false) String storeId,
-            @RequestParam(required = false) String staffId) {
+            @RequestParam(required = false) String staffId,
+            HttpServletRequest request) {
         List<QrcodeRecord> records = qrcodeService.lambdaQuery()
                 .eq(storeId != null && !storeId.isEmpty(), QrcodeRecord::getStoreId, storeId)
                 .eq(staffId != null && !staffId.isEmpty(), QrcodeRecord::getStaffId, staffId)
                 .orderByDesc(QrcodeRecord::getCreatedAt)
                 .list();
-        records.forEach(this::attachImageUrl);
+        records.forEach(record -> attachPublicUrls(record, request));
         return Result.success(records);
     }
 
@@ -58,20 +60,21 @@ public class QrcodeController {
      * 根据ID获取二维码
      */
     @GetMapping("/{id}")
-    public Result<QrcodeRecord> getById(@PathVariable Integer id) {
-        return Result.success(attachImageUrl(qrcodeService.getById(id)));
+    public Result<QrcodeRecord> getById(@PathVariable Integer id, HttpServletRequest request) {
+        return Result.success(attachPublicUrls(qrcodeService.getById(id), request));
     }
 
     @GetMapping(value = "/{id}/image", produces = MediaType.IMAGE_PNG_VALUE)
     public ResponseEntity<byte[]> image(
             @PathVariable Integer id,
-            @RequestParam(defaultValue = "false") boolean download) {
+            @RequestParam(defaultValue = "false") boolean download,
+            HttpServletRequest request) {
         QrcodeRecord record = qrcodeService.getById(id);
-        if (record == null || record.getJumpPageUrl() == null || record.getJumpPageUrl().isEmpty()) {
+        if (record == null) {
             return ResponseEntity.notFound().build();
         }
 
-        byte[] image = qrcodeGeneratorService.generate(record.getJumpPageUrl());
+        byte[] image = qrcodeGeneratorService.generate(publicUrlResolver.buildJumpPageUrl(request, id));
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.IMAGE_PNG);
         if (download) {
@@ -101,18 +104,12 @@ public class QrcodeController {
         return Result.success(qrcodeService.batchDelete(ids));
     }
 
-    private QrcodeRecord attachImageUrl(QrcodeRecord record) {
+    private QrcodeRecord attachPublicUrls(QrcodeRecord record, HttpServletRequest request) {
         if (record != null && record.getId() != null) {
-            record.setQrcodeUrl(buildQrcodeImageUrl(record.getId()));
+            record.setJumpPageUrl(publicUrlResolver.buildJumpPageUrl(request, record.getId()));
+            record.setQrcodeUrl(publicUrlResolver.buildQrcodeImageUrl(request, record.getId()));
         }
         return record;
-    }
-
-    private String buildQrcodeImageUrl(Integer id) {
-        String normalizedBaseUrl = baseUrl.endsWith("/")
-                ? baseUrl.substring(0, baseUrl.length() - 1)
-                : baseUrl;
-        return normalizedBaseUrl + "/api/qrcodes/" + id + "/image";
     }
 
 }

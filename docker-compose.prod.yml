@@ -36,7 +36,7 @@ services:
       - DB_NAME=${DB_NAME:-qrcode_channel}
       - DB_USERNAME=${DB_USERNAME:-root}
       - DB_PASSWORD=${DB_PASSWORD:-your_secure_password}
-      - APP_BASE_URL=${APP_BASE_URL:-http://localhost}
+      - APP_BASE_URL=${APP_BASE_URL:-}
       - APP_CORS_ALLOWED_ORIGINS=${APP_CORS_ALLOWED_ORIGINS:-*}
       - WECHAT_MP_APPID=${WECHAT_MP_APPID:-}
       - WECHAT_MP_SECRET=${WECHAT_MP_SECRET:-}

@@ -28,7 +28,7 @@ public class QrcodeServiceImpl extends ServiceImpl<QrcodeRecordMapper, QrcodeRec
     private final WechatConfigService wechatConfigService;
     private final WechatUrlLinkService wechatUrlLinkService;
 
-    @Value("${app.base-url:http://localhost:8080}")
+    @Value("${app.base-url:}")
     private String baseUrl;
 
     @Override
@@ -92,9 +92,13 @@ public class QrcodeServiceImpl extends ServiceImpl<QrcodeRecordMapper, QrcodeRec
     }
 
     private String normalizedBaseUrl() {
-        return baseUrl.endsWith("/")
-                ? baseUrl.substring(0, baseUrl.length() - 1)
-                : baseUrl;
+        if (!StringUtils.hasText(baseUrl)) {
+            return "";
+        }
+        String normalized = baseUrl.trim();
+        return normalized.endsWith("/")
+                ? normalized.substring(0, normalized.length() - 1)
+                : normalized;
     }
 
     private String buildFallbackUrlLink(String appId, String pagePath, String scene) {

@@ -1,6 +1,6 @@
 # 公司 K8S 落地清单
 
-> 当前版本不再依赖 MinIO / OBS。二维码图片由后端根据 `jumpPageUrl` 动态生成，预览和下载都走 `GET /api/qrcodes/{id}/image`。
+> 当前版本不再依赖 MinIO / OBS。二维码图片由后端根据当前公开访问地址动态生成，预览和下载都走 `GET /api/qrcodes/{id}/image`。
 
 ## 1. 服务组成
 
@@ -38,7 +38,7 @@ WECHAT_MP_SECRET=<mp-secret>
 
 ## 4. QR 图片和下载
 
-二维码图片不落对象存储。后端根据数据库中的 `jumpPageUrl` 实时生成 PNG：
+二维码图片不落对象存储。后端根据请求 Host / 转发协议实时生成 PNG：
 
 - 预览：`GET /api/qrcodes/{id}/image`
 - 下载：`GET /api/qrcodes/{id}/image?download=true`
