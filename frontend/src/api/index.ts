@@ -1,30 +1,51 @@
 import axios from 'axios'
 import { ElMessage } from 'element-plus'
+import { clearAuthSession, getAuthToken } from '@/auth/session'
 
 const apiBaseURL = import.meta.env.VITE_API_BASE_URL || '/api'
 
-// 创建axios实例
 const request = axios.create({
-    baseURL: apiBaseURL,
-    timeout: 30000
+  baseURL: apiBaseURL,
+  timeout: 30000
 })
 
-// 响应拦截器
+request.interceptors.request.use((config) => {
+  const token = getAuthToken()
+  if (token) {
+    config.headers = config.headers || {}
+    ;(config.headers as Record<string, string>).Authorization = `Bearer ${token}`
+  }
+  return config
+})
+
 request.interceptors.response.use(
-    (response) => {
-        const res = response.data
-        if (res.code !== 200) {
-            ElMessage.error(res.message || '请求失败')
-            return Promise.reject(new Error(res.message || 'Error'))
-        }
-        return res
-    },
-    (error) => {
-        const message = error?.response?.data?.message || error.message || '网络错误'
-        ElMessage.error(message)
-        return Promise.reject(error)
+  (response) => {
+    const res = response.data
+    if (res.code !== 200) {
+      ElMessage.error(res.message || '请求失败')
+      return Promise.reject(new Error(res.message || 'Error'))
     }
+    return res
+  },
+  (error) => {
+    const message = error?.response?.data?.message || error.message || '网络错误'
+    if (error?.response?.status === 401) {
+      clearAuthSession()
+      if (window.location.pathname !== '/login') {
+        const redirect = encodeURIComponent(window.location.pathname + window.location.search)
+        window.location.href = `/login?redirect=${redirect}`
+      }
+    }
+    ElMessage.error(message)
+    return Promise.reject(error)
+  }
 )
+
+// ========== 登录认证 API ==========
+export const loginAdmin = (data: { username: string; password: string }) => request.post('/auth/login', data)
+export const getCurrentUser = () => request.get('/auth/me')
+export const changePassword = (data: { currentPassword: string; newPassword: string }) =>
+  request.post('/auth/change-password', data)
 
 // ========== 配置管理 API ==========
 export const getConfigList = () => request.get('/wechat-configs')
@@ -55,6 +76,6 @@ export const deleteCampaign = (id: number) => request.delete(`/campaigns/${id}`)
 // ========== 落地页 API ==========
 export const getLandingData = (qid: number) => request.get('/public/landing', { params: { qid } })
 export const getWechatJssdkSignature = (url: string) =>
-    request.get('/public/wechat-jssdk/signature', { params: { url } })
+  request.get('/public/wechat-jssdk/signature', { params: { url } })
 
 export default request

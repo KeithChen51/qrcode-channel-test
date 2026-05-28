@@ -10,7 +10,7 @@
         <div class="card-header">
           <span>活动列表</span>
           <el-button type="primary" @click="showDialog = true">
-            <Icon icon="solar:add-circle-bold" width="16" />
+            <LocalIcon name="solar:add-circle-bold" width="16" />
             新建活动
           </el-button>
         </div>
@@ -73,7 +73,7 @@
 
 <script setup lang="ts">
 import { ref, reactive, onMounted } from 'vue'
-import { Icon } from '@iconify/vue'
+import LocalIcon from '@/components/LocalIcon.vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { getCampaignList, createCampaign, updateCampaign, deleteCampaign } from '@/api'
 

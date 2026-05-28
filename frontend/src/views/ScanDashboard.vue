@@ -1,4 +1,4 @@
-﻿<template>
+<template>
   <div class="scan-dashboard">
     <div class="page-header">
       <h1>扫码看板</h1>
@@ -11,7 +11,7 @@
           <div class="stat-header">
             <span class="stat-title">总扫码次数</span>
             <div class="icon-box blue">
-              <Icon icon="solar:eye-bold-duotone" width="20" />
+              <LocalIcon name="solar:eye-bold-duotone" width="20" />
             </div>
           </div>
           <div class="stat-value">{{ stats.totalScans || 0 }}</div>
@@ -23,7 +23,7 @@
           <div class="stat-header">
             <span class="stat-title">总注册人数</span>
             <div class="icon-box green">
-              <Icon icon="solar:user-check-bold-duotone" width="20" />
+              <LocalIcon name="solar:user-check-bold-duotone" width="20" />
             </div>
           </div>
           <div class="stat-value">{{ stats.totalRegisters || 0 }}</div>
@@ -35,7 +35,7 @@
           <div class="stat-header">
             <span class="stat-title">今日扫码</span>
             <div class="icon-box purple">
-              <Icon icon="solar:calendar-bold-duotone" width="20" />
+              <LocalIcon name="solar:calendar-bold-duotone" width="20" />
             </div>
           </div>
           <div class="stat-value">{{ stats.todayScans || 0 }}</div>
@@ -47,7 +47,7 @@
           <div class="stat-header">
             <span class="stat-title">今日注册</span>
             <div class="icon-box primary">
-              <Icon icon="solar:user-plus-bold-duotone" width="20" />
+              <LocalIcon name="solar:user-plus-bold-duotone" width="20" />
             </div>
           </div>
           <div class="stat-value">{{ stats.todayRegisters || 0 }}</div>
@@ -92,7 +92,7 @@
 
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
-import { Icon } from '@iconify/vue'
+import LocalIcon from '@/components/LocalIcon.vue'
 import { getScanList, getScanStats } from '@/api'
 
 const loading = ref(false)

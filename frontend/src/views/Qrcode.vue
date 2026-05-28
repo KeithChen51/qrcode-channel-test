@@ -1,4 +1,4 @@
-﻿<template>
+<template>
   <div class="qrcode-page">
     <div class="page-header">
       <h1>二维码管理</h1>
@@ -34,7 +34,7 @@
         </el-form-item>
         <el-form-item>
           <el-button type="primary" @click="handleGenerate" :loading="generating">
-            <Icon icon="solar:qr-code-bold" width="16" />
+            <LocalIcon name="solar:qr-code-bold" width="16" />
             生成二维码
           </el-button>
         </el-form-item>
@@ -152,7 +152,7 @@
 
 <script setup lang="ts">
 import { ref, reactive, onMounted } from 'vue'
-import { Icon } from '@iconify/vue'
+import LocalIcon from '@/components/LocalIcon.vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import {
   getQrcodeList,

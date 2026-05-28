@@ -10,7 +10,7 @@
         <div class="card-header">
           <span>小程序配置列表</span>
           <el-button type="primary" @click="showDialog = true">
-            <Icon icon="solar:add-circle-bold" width="16" />
+            <LocalIcon name="solar:add-circle-bold" width="16" />
             新增配置
           </el-button>
         </div>
@@ -79,7 +79,7 @@
 
 <script setup lang="ts">
 import { ref, onMounted, reactive } from 'vue'
-import { Icon } from '@iconify/vue'
+import LocalIcon from '@/components/LocalIcon.vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { getConfigList, createConfig, updateConfig, deleteConfig, activateConfig } from '@/api'
 

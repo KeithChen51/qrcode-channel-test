@@ -11,4 +11,6 @@ data:
   DB_USERNAME: "qrcode_user"
   APP_BASE_URL: "https://qrcode.company.com"
   APP_CORS_ALLOWED_ORIGINS: "https://qrcode.company.com"
+  ADMIN_USERNAME: "admin"
+  AUTH_TOKEN_TTL_MINUTES: "720"
   WECHAT_MP_APPID: "your_mp_appid"

@@ -9,7 +9,7 @@
     <el-card class="mb-4">
       <template #header>
         <div class="card-title">
-          <Icon icon="solar:rocket-bold-duotone" width="24" class="text-primary" />
+          <LocalIcon name="solar:rocket-bold-duotone" width="24" class="text-primary" />
           <span>快速开始</span>
         </div>
       </template>
@@ -26,7 +26,7 @@
     <el-card class="mb-4">
       <template #header>
         <div class="card-title">
-          <Icon icon="solar:widget-bold-duotone" width="24" class="text-blue" />
+          <LocalIcon name="solar:widget-bold-duotone" width="24" class="text-blue" />
           <span>功能模块说明</span>
         </div>
       </template>
@@ -50,44 +50,44 @@
     <el-card class="mb-4">
       <template #header>
         <div class="card-title">
-          <Icon icon="solar:qr-code-bold-duotone" width="24" class="text-green" />
+          <LocalIcon name="solar:qr-code-bold-duotone" width="24" class="text-green" />
           <span>二维码生成流程</span>
         </div>
       </template>
       <div class="flow-diagram">
         <div class="flow-item">
           <div class="flow-icon">
-            <Icon icon="solar:qr-code-bold-duotone" width="32" />
+            <LocalIcon name="solar:qr-code-bold-duotone" width="32" />
           </div>
           <div class="flow-text">
             <h4>生成二维码</h4>
             <p>输入门店ID和员工ID</p>
           </div>
         </div>
-        <Icon icon="solar:arrow-right-bold" class="flow-arrow" />
+        <LocalIcon name="solar:arrow-right-bold" class="flow-arrow" />
         <div class="flow-item">
           <div class="flow-icon blue">
-            <Icon icon="solar:smartphone-bold-duotone" width="32" />
+            <LocalIcon name="solar:smartphone-bold-duotone" width="32" />
           </div>
           <div class="flow-text">
             <h4>用户扫码</h4>
             <p>进入H5中转页面</p>
           </div>
         </div>
-        <Icon icon="solar:arrow-right-bold" class="flow-arrow" />
+        <LocalIcon name="solar:arrow-right-bold" class="flow-arrow" />
         <div class="flow-item">
           <div class="flow-icon green">
-            <Icon icon="solar:widget-5-bold-duotone" width="32" />
+            <LocalIcon name="solar:widget-5-bold-duotone" width="32" />
           </div>
           <div class="flow-text">
             <h4>跳转小程序</h4>
             <p>带渠道参数进入</p>
           </div>
         </div>
-        <Icon icon="solar:arrow-right-bold" class="flow-arrow" />
+        <LocalIcon name="solar:arrow-right-bold" class="flow-arrow" />
         <div class="flow-item">
           <div class="flow-icon purple">
-            <Icon icon="solar:chart-2-bold-duotone" width="32" />
+            <LocalIcon name="solar:chart-2-bold-duotone" width="32" />
           </div>
           <div class="flow-text">
             <h4>数据统计</h4>
@@ -101,7 +101,7 @@
     <el-card>
       <template #header>
         <div class="card-title">
-          <Icon icon="solar:question-circle-bold-duotone" width="24" class="text-warning" />
+          <LocalIcon name="solar:question-circle-bold-duotone" width="24" class="text-warning" />
           <span>常见问题</span>
         </div>
       </template>
@@ -124,7 +124,7 @@
 </template>
 
 <script setup lang="ts">
-import { Icon } from '@iconify/vue'
+import LocalIcon from '@/components/LocalIcon.vue'
 </script>
 
 <style scoped lang="scss">

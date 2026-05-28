@@ -1,7 +1,7 @@
 <template>
   <div class="not-found">
     <div class="content">
-      <Icon icon="solar:ghost-bold-duotone" width="120" class="icon" />
+      <LocalIcon name="solar:ghost-bold-duotone" width="120" class="icon" />
       <h1>404</h1>
       <p>页面未找到</p>
       <el-button type="primary" @click="$router.push('/')">
@@ -12,7 +12,7 @@
 </template>
 
 <script setup lang="ts">
-import { Icon } from '@iconify/vue'
+import LocalIcon from '@/components/LocalIcon.vue'
 </script>
 
 <style scoped lang="scss">

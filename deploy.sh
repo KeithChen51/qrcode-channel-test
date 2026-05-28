@@ -38,6 +38,21 @@ set +a
 BACKEND_PORT="${BACKEND_PORT:-8080}"
 DB_HOST="${DB_HOST:-mysql}"
 
+if [ -z "${AUTH_TOKEN_SECRET:-}" ]; then
+    echo "ERROR: AUTH_TOKEN_SECRET is required."
+    exit 1
+fi
+
+if [ "${#AUTH_TOKEN_SECRET}" -lt 32 ]; then
+    echo "ERROR: AUTH_TOKEN_SECRET must be at least 32 characters."
+    exit 1
+fi
+
+if [ -z "${ADMIN_INITIAL_PASSWORD:-}" ]; then
+    echo "ERROR: ADMIN_INITIAL_PASSWORD is required for first admin initialization."
+    exit 1
+fi
+
 echo ""
 echo "1. Validate compose config..."
 "${COMPOSE_CMD[@]}" config >/dev/null

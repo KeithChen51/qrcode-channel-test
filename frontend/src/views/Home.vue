@@ -12,7 +12,7 @@
           <div class="stat-header">
             <span class="stat-title">小程序配置</span>
             <div class="icon-box primary">
-              <Icon icon="solar:settings-bold-duotone" width="20" />
+              <LocalIcon name="solar:settings-bold-duotone" width="20" />
             </div>
           </div>
           <div class="stat-value" :class="configStatus.class">
@@ -27,7 +27,7 @@
           <div class="stat-header">
             <span class="stat-title">二维码数量</span>
             <div class="icon-box blue">
-              <Icon icon="solar:qr-code-bold-duotone" width="20" />
+              <LocalIcon name="solar:qr-code-bold-duotone" width="20" />
             </div>
           </div>
           <div class="stat-value">{{ stats.qrcodeCount }}</div>
@@ -40,7 +40,7 @@
           <div class="stat-header">
             <span class="stat-title">总扫码次数</span>
             <div class="icon-box green">
-              <Icon icon="solar:eye-bold-duotone" width="20" />
+              <LocalIcon name="solar:eye-bold-duotone" width="20" />
             </div>
           </div>
           <div class="stat-value">{{ stats.scanCount }}</div>
@@ -55,13 +55,13 @@
         <div class="action-card">
           <div class="action-header">
             <div class="icon-box primary">
-              <Icon icon="solar:settings-bold-duotone" width="24" />
+              <LocalIcon name="solar:settings-bold-duotone" width="24" />
             </div>
             <span class="action-title">配置管理</span>
           </div>
           <p class="action-desc">配置小程序AppID和密钥</p>
           <el-button type="primary" @click="$router.push('/config')">
-            <Icon icon="solar:arrow-right-linear" width="16" />
+            <LocalIcon name="solar:arrow-right-linear" width="16" />
             查看配置
           </el-button>
         </div>
@@ -71,13 +71,13 @@
         <div class="action-card">
           <div class="action-header">
             <div class="icon-box blue">
-              <Icon icon="solar:qr-code-bold-duotone" width="24" />
+              <LocalIcon name="solar:qr-code-bold-duotone" width="24" />
             </div>
             <span class="action-title">生成二维码</span>
           </div>
           <p class="action-desc">为门店和服务人员生成专属推广码</p>
           <el-button type="primary" @click="$router.push('/qrcode')">
-            <Icon icon="solar:arrow-right-linear" width="16" />
+            <LocalIcon name="solar:arrow-right-linear" width="16" />
             生成二维码
           </el-button>
         </div>
@@ -87,13 +87,13 @@
         <div class="action-card">
           <div class="action-header">
             <div class="icon-box purple">
-              <Icon icon="solar:book-bold-duotone" width="24" />
+              <LocalIcon name="solar:book-bold-duotone" width="24" />
             </div>
             <span class="action-title">使用指南</span>
           </div>
           <p class="action-desc">查看系统使用说明和常见问题</p>
           <el-button type="primary" @click="$router.push('/guide')">
-            <Icon icon="solar:arrow-right-linear" width="16" />
+            <LocalIcon name="solar:arrow-right-linear" width="16" />
             查看指南
           </el-button>
         </div>
@@ -104,7 +104,7 @@
 
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue'
-import { Icon } from '@iconify/vue'
+import LocalIcon from '@/components/LocalIcon.vue'
 import { getActiveConfig, getQrcodeList } from '@/api'
 
 const loading = ref(false)
