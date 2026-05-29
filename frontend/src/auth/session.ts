@@ -3,15 +3,10 @@ export interface AuthUser {
   mustChangePassword: boolean
 }
 
-const TOKEN_KEY = 'qrcode_admin_token'
+const LEGACY_TOKEN_KEY = 'qrcode_admin_token'
 const USER_KEY = 'qrcode_admin_user'
 
-export function getAuthToken(): string {
-  return localStorage.getItem(TOKEN_KEY) || ''
-}
-
-export function setAuthSession(token: string, username: string, mustChangePassword: boolean) {
-  localStorage.setItem(TOKEN_KEY, token)
+export function setAuthSession(_token: string, username: string, mustChangePassword: boolean) {
   setAuthUser(username, mustChangePassword)
 }
 
@@ -34,6 +29,11 @@ export function getAuthUser(): AuthUser | null {
 }
 
 export function clearAuthSession() {
-  localStorage.removeItem(TOKEN_KEY)
+  localStorage.removeItem(LEGACY_TOKEN_KEY)
+  sessionStorage.removeItem(LEGACY_TOKEN_KEY)
   localStorage.removeItem(USER_KEY)
+}
+
+export function hasAuthSession(): boolean {
+  return Boolean(getAuthUser())
 }

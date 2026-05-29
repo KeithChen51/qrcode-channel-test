@@ -6,6 +6,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.mock.web.MockCookie;
 import org.springframework.mock.web.MockHttpServletRequest;
 import org.springframework.mock.web.MockHttpServletResponse;
 
@@ -56,6 +57,21 @@ class AdminAuthInterceptorTest {
         request.addHeader("Authorization", "Bearer token-value");
         MockHttpServletResponse response = new MockHttpServletResponse();
         when(authService.verifyToken("token-value"))
+                .thenReturn(new AdminPrincipal("admin", false, 100L, 200L));
+
+        boolean allowed = interceptor.preHandle(request, response, new Object());
+
+        assertTrue(allowed);
+        assertEquals("admin", AdminUserContext.current().username());
+    }
+
+    @Test
+    void acceptsValidAuthCookie() throws Exception {
+        AdminAuthInterceptor interceptor = new AdminAuthInterceptor(authService);
+        MockHttpServletRequest request = new MockHttpServletRequest("GET", "/api/qrcodes");
+        request.setCookies(new MockCookie("qrcode_admin_token", "cookie-token"));
+        MockHttpServletResponse response = new MockHttpServletResponse();
+        when(authService.verifyToken("cookie-token"))
                 .thenReturn(new AdminPrincipal("admin", false, 100L, 200L));
 
         boolean allowed = interceptor.preHandle(request, response, new Object());

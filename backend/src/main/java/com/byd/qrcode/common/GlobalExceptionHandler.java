@@ -1,6 +1,7 @@
 package com.byd.qrcode.common;
 
 import lombok.extern.slf4j.Slf4j;
+import com.byd.qrcode.security.RateLimitExceededException;
 import org.springframework.http.HttpStatus;
 import org.springframework.validation.BindException;
 import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
@@ -20,6 +21,12 @@ public class GlobalExceptionHandler {
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     public Result<Void> handleIllegalArgumentException(IllegalArgumentException e) {
         return Result.error(400, e.getMessage());
+    }
+
+    @ExceptionHandler(RateLimitExceededException.class)
+    @ResponseStatus(HttpStatus.TOO_MANY_REQUESTS)
+    public Result<Void> handleRateLimitExceededException(RateLimitExceededException e) {
+        return Result.error(429, e.getMessage());
     }
 
     @ExceptionHandler(MethodArgumentTypeMismatchException.class)

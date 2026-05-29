@@ -29,6 +29,7 @@
 - Backend health: `http://127.0.0.1:8080/api/health`
 - Frontend: `http://127.0.0.1:5173`
 - Initial admin login: `admin` / the value of `ADMIN_INITIAL_PASSWORD`; the app will require a password change after first login.
+- `deploy.sh` can auto-generate production secrets, but IDE local startup still needs these environment variables.
 
 ## Constraints
 - Do not use temporary parameter files such as `backend/run-local.args` as the standard startup path.

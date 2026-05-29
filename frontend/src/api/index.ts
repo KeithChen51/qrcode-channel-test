@@ -1,21 +1,13 @@
 import axios from 'axios'
 import { ElMessage } from 'element-plus'
-import { clearAuthSession, getAuthToken } from '@/auth/session'
+import { clearAuthSession } from '@/auth/session'
 
 const apiBaseURL = import.meta.env.VITE_API_BASE_URL || '/api'
 
 const request = axios.create({
   baseURL: apiBaseURL,
-  timeout: 30000
-})
-
-request.interceptors.request.use((config) => {
-  const token = getAuthToken()
-  if (token) {
-    config.headers = config.headers || {}
-    ;(config.headers as Record<string, string>).Authorization = `Bearer ${token}`
-  }
-  return config
+  timeout: 30000,
+  withCredentials: true
 })
 
 request.interceptors.response.use(
@@ -46,6 +38,7 @@ export const loginAdmin = (data: { username: string; password: string }) => requ
 export const getCurrentUser = () => request.get('/auth/me')
 export const changePassword = (data: { currentPassword: string; newPassword: string }) =>
   request.post('/auth/change-password', data)
+export const logoutAdmin = () => request.post('/auth/logout')
 
 // ========== 配置管理 API ==========
 export const getConfigList = () => request.get('/wechat-configs')

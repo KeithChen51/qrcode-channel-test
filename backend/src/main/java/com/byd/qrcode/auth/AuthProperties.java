@@ -19,4 +19,10 @@ public class AuthProperties {
 
     @Value("${auth.token-ttl-minutes:720}")
     private long tokenTtlMinutes = 720;
+
+    @Value("${auth.login-max-attempts:5}")
+    private int loginMaxAttempts = 5;
+
+    @Value("${auth.login-lock-minutes:10}")
+    private long loginLockMinutes = 10;
 }

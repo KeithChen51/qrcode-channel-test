@@ -5,6 +5,9 @@ set -euo pipefail
 COMPOSE_FILE="docker-compose.prod.yml"
 COMPOSE_CMD=(docker compose -f "$COMPOSE_FILE")
 BACKEND_PORT="${BACKEND_PORT:-8080}"
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+
+source "$SCRIPT_DIR/deploy/env-secrets.sh"
 
 echo "======================================"
 echo "QR code channel system - backend deploy"
@@ -35,22 +38,32 @@ set -a
 . ./.env
 set +a
 
+GENERATED_AUTH_TOKEN_SECRET="$(ensure_env_secret .env AUTH_TOKEN_SECRET 48)"
+GENERATED_ADMIN_INITIAL_PASSWORD="$(ensure_env_secret .env ADMIN_INITIAL_PASSWORD 24)"
+
+if [ -n "$GENERATED_AUTH_TOKEN_SECRET" ] || [ -n "$GENERATED_ADMIN_INITIAL_PASSWORD" ]; then
+    set -a
+    . ./.env
+    set +a
+fi
+
 BACKEND_PORT="${BACKEND_PORT:-8080}"
 DB_HOST="${DB_HOST:-mysql}"
-
-if [ -z "${AUTH_TOKEN_SECRET:-}" ]; then
-    echo "ERROR: AUTH_TOKEN_SECRET is required."
-    exit 1
-fi
 
 if [ "${#AUTH_TOKEN_SECRET}" -lt 32 ]; then
     echo "ERROR: AUTH_TOKEN_SECRET must be at least 32 characters."
     exit 1
 fi
 
-if [ -z "${ADMIN_INITIAL_PASSWORD:-}" ]; then
-    echo "ERROR: ADMIN_INITIAL_PASSWORD is required for first admin initialization."
-    exit 1
+if [ -n "$GENERATED_AUTH_TOKEN_SECRET" ]; then
+    echo "Generated AUTH_TOKEN_SECRET and wrote it to .env."
+fi
+
+if [ -n "$GENERATED_ADMIN_INITIAL_PASSWORD" ]; then
+    echo "Generated ADMIN_INITIAL_PASSWORD and wrote it to .env."
+    echo "Initial admin username: ${ADMIN_USERNAME:-admin}"
+    echo "Initial admin password was stored in .env and will not be printed to deployment logs."
+    echo "Use the .env value for the first login, then change it in the system."
 fi
 
 echo ""

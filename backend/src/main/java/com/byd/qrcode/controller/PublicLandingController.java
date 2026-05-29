@@ -6,12 +6,15 @@ import com.byd.qrcode.entity.Campaign;
 import com.byd.qrcode.entity.QrcodeRecord;
 import com.byd.qrcode.entity.ScanRecord;
 import com.byd.qrcode.entity.WechatConfig;
+import com.byd.qrcode.security.RateLimitExceededException;
+import com.byd.qrcode.security.RateLimitService;
 import com.byd.qrcode.service.CampaignService;
 import com.byd.qrcode.service.QrcodeService;
 import com.byd.qrcode.service.ScanRecordService;
 import com.byd.qrcode.service.WechatConfigService;
 import com.byd.qrcode.service.WechatUrlLinkService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -36,6 +39,13 @@ public class PublicLandingController {
     private final CampaignService campaignService;
     private final WechatConfigService wechatConfigService;
     private final WechatUrlLinkService wechatUrlLinkService;
+    private final RateLimitService rateLimitService;
+
+    @Value("${security.rate-limit.scan.max-requests:60}")
+    private int scanMaxRequests = 60;
+
+    @Value("${security.rate-limit.scan.window-seconds:60}")
+    private long scanWindowSeconds = 60;
 
     @GetMapping("/landing")
     public Result<LandingResponseDTO> landing(
@@ -46,8 +56,10 @@ public class PublicLandingController {
             throw new IllegalArgumentException("二维码不存在: " + qid);
         }
 
+        String clientIp = getClientIp(request);
+        checkScanRateLimit("landing|" + qid, clientIp);
         ScanRecord scanRecord = scanRecordService.recordFromH5(
-                qid, getClientIp(request), request.getHeader("User-Agent"));
+                qid, clientIp, request.getHeader("User-Agent"));
 
         LandingResponseDTO dto = new LandingResponseDTO();
         dto.setQid(qid);
@@ -217,6 +229,13 @@ public class PublicLandingController {
         if (!StringUtils.hasText(ip) || "unknown".equalsIgnoreCase(ip)) {
             ip = request.getRemoteAddr();
         }
-        return ip;
+        return StringUtils.hasText(ip) ? ip.split(",")[0].trim() : ip;
+    }
+
+    private void checkScanRateLimit(String actionKey, String clientKey) {
+        String key = actionKey + "|" + clientKey;
+        if (!rateLimitService.tryAcquire("public-scan", key, scanMaxRequests, scanWindowSeconds)) {
+            throw new RateLimitExceededException("Too many scan requests. Please try again later.");
+        }
     }
 }

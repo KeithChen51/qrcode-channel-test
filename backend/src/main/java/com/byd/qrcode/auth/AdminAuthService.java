@@ -4,6 +4,7 @@ import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.byd.qrcode.dto.AuthResponse;
 import com.byd.qrcode.entity.AdminUser;
 import com.byd.qrcode.mapper.AdminUserMapper;
+import com.byd.qrcode.security.RateLimitService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
@@ -17,13 +18,29 @@ public class AdminAuthService {
     private final AdminUserMapper adminUserMapper;
     private final PasswordHasher passwordHasher;
     private final AuthTokenService authTokenService;
+    private final RateLimitService rateLimitService;
+    private final AuthProperties authProperties;
 
     public AuthResponse login(String username, String password) {
-        AdminUser user = findByUsername(username);
-        if (user == null || !passwordHasher.matches(password, user.getPasswordHash())) {
-            throw new AuthException(401, "账号或密码不正确");
+        return login(username, password, "unknown");
+    }
+
+    public AuthResponse login(String username, String password, String clientIp) {
+        String rateLimitKey = loginRateLimitKey(username, clientIp);
+        if (!rateLimitService.tryAcquire(
+                "auth-login",
+                rateLimitKey,
+                authProperties.getLoginMaxAttempts(),
+                Math.max(authProperties.getLoginLockMinutes(), 1) * 60)) {
+            throw new AuthException(429, "Too many failed login attempts. Please try again later.");
         }
 
+        AdminUser user = findByUsername(username);
+        if (user == null || !passwordHasher.matches(password, user.getPasswordHash())) {
+            throw new AuthException(401, "Invalid username or password");
+        }
+
+        rateLimitService.reset("auth-login", rateLimitKey);
         String token = authTokenService.issue(user.getUsername());
         AuthTokenService.VerifiedToken verifiedToken = authTokenService.verify(token);
         return new AuthResponse(
@@ -38,16 +55,16 @@ public class AdminAuthService {
         try {
             verifiedToken = authTokenService.verify(token);
         } catch (IllegalArgumentException ex) {
-            throw new AuthException(401, "未登录或登录已过期");
+            throw new AuthException(401, "Authentication required or session expired");
         }
 
         AdminUser user = findByUsername(verifiedToken.username());
         if (user == null) {
-            throw new AuthException(401, "未登录或登录已过期");
+            throw new AuthException(401, "Authentication required or session expired");
         }
         Long passwordChangedAt = user.getPasswordChangedAt();
         if (passwordChangedAt != null && verifiedToken.issuedAt() < passwordChangedAt) {
-            throw new AuthException(401, "密码已变更，请重新登录");
+            throw new AuthException(401, "Password changed. Please sign in again.");
         }
         return new AdminPrincipal(
                 user.getUsername(),
@@ -59,10 +76,10 @@ public class AdminAuthService {
     public void changePassword(String username, String currentPassword, String newPassword) {
         AdminUser user = findByUsername(username);
         if (user == null) {
-            throw new AuthException(401, "未登录或登录已过期");
+            throw new AuthException(401, "Authentication required or session expired");
         }
         if (!passwordHasher.matches(currentPassword, user.getPasswordHash())) {
-            throw new IllegalArgumentException("当前密码不正确");
+            throw new IllegalArgumentException("Current password is incorrect");
         }
         validateNewPassword(newPassword);
 
@@ -83,9 +100,19 @@ public class AdminAuthService {
         return user.getMustChangePassword() != null && user.getMustChangePassword() == 1;
     }
 
+    private String loginRateLimitKey(String username, String clientIp) {
+        String normalizedUsername = StringUtils.hasText(username)
+                ? username.trim().toLowerCase()
+                : "unknown";
+        String normalizedClientIp = StringUtils.hasText(clientIp)
+                ? clientIp.trim()
+                : "unknown";
+        return normalizedUsername + "|" + normalizedClientIp;
+    }
+
     private void validateNewPassword(String password) {
         if (!StringUtils.hasText(password) || password.length() < 8 || password.length() > 64) {
-            throw new IllegalArgumentException("新密码长度需要在 8 到 64 位之间");
+            throw new IllegalArgumentException("New password length must be between 8 and 64 characters");
         }
         boolean hasLetter = false;
         boolean hasDigit = false;
@@ -94,7 +121,7 @@ public class AdminAuthService {
             hasDigit = hasDigit || Character.isDigit(ch);
         }
         if (!hasLetter || !hasDigit) {
-            throw new IllegalArgumentException("新密码至少需要包含字母和数字");
+            throw new IllegalArgumentException("New password must contain at least one letter and one digit");
         }
     }
 }

@@ -36,6 +36,14 @@ auth:
   admin-initial-password: ${ADMIN_INITIAL_PASSWORD:}
   token-secret: ${AUTH_TOKEN_SECRET:}
   token-ttl-minutes: ${AUTH_TOKEN_TTL_MINUTES:720}
+  login-max-attempts: ${AUTH_LOGIN_MAX_ATTEMPTS:5}
+  login-lock-minutes: ${AUTH_LOGIN_LOCK_MINUTES:10}
+
+security:
+  rate-limit:
+    scan:
+      max-requests: ${SCAN_RATE_LIMIT_MAX_REQUESTS:60}
+      window-seconds: ${SCAN_RATE_LIMIT_WINDOW_SECONDS:60}
 
 wechat:
   # For wx-open-launch-weapp signature in WeChat browser.

@@ -1,6 +1,6 @@
 import { createRouter, createWebHistory } from 'vue-router'
 import type { RouteRecordRaw } from 'vue-router'
-import { getAuthToken } from '@/auth/session'
+import { hasAuthSession } from '@/auth/session'
 
 declare module 'vue-router' {
   interface RouteMeta {
@@ -81,13 +81,13 @@ const router = createRouter({
 router.beforeEach((to, _from, next) => {
   document.title = `${to.meta.title || '页面'} - JCYC 活码系统`
 
-  const hasToken = Boolean(getAuthToken())
-  if (!to.meta.public && !hasToken) {
+  const hasSession = hasAuthSession()
+  if (!to.meta.public && !hasSession) {
     next({ path: '/login', query: { redirect: to.fullPath } })
     return
   }
 
-  if (to.path === '/login' && hasToken) {
+  if (to.path === '/login' && hasSession) {
     const redirect = typeof to.query.redirect === 'string' ? to.query.redirect : '/'
     next(redirect)
     return

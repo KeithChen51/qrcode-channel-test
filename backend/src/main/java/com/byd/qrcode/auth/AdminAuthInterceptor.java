@@ -5,6 +5,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
 import org.springframework.web.servlet.HandlerInterceptor;
 
+import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
@@ -12,6 +13,8 @@ import java.io.IOException;
 @Component
 @RequiredArgsConstructor
 public class AdminAuthInterceptor implements HandlerInterceptor {
+
+    public static final String AUTH_COOKIE_NAME = "qrcode_admin_token";
 
     private final AdminAuthService authService;
 
@@ -21,16 +24,16 @@ public class AdminAuthInterceptor implements HandlerInterceptor {
             return true;
         }
 
-        String authorization = request.getHeader("Authorization");
-        if (!StringUtils.hasText(authorization) || !authorization.startsWith("Bearer ")) {
-            writeError(response, HttpServletResponse.SC_UNAUTHORIZED, "未登录或登录已过期");
+        String token = resolveToken(request);
+        if (!StringUtils.hasText(token)) {
+            writeError(response, HttpServletResponse.SC_UNAUTHORIZED, "Authentication required or session expired");
             return false;
         }
 
         try {
-            AdminPrincipal principal = authService.verifyToken(authorization.substring("Bearer ".length()).trim());
+            AdminPrincipal principal = authService.verifyToken(token);
             if (principal.mustChangePassword() && !isPasswordChangeApi(request)) {
-                writeError(response, HttpServletResponse.SC_FORBIDDEN, "请先修改初始密码");
+                writeError(response, HttpServletResponse.SC_FORBIDDEN, "Please change the initial password first");
                 return false;
             }
             AdminUserContext.set(principal);
@@ -50,6 +53,7 @@ public class AdminAuthInterceptor implements HandlerInterceptor {
         String path = request.getRequestURI();
         path = normalizePath(request, path);
         return "/api/auth/login".equals(path)
+                || "/api/auth/logout".equals(path)
                 || "/api/health".equals(path)
                 || path.startsWith("/api/public/")
                 || path.matches("^/api/qrcodes/\\d+/image$")
@@ -68,6 +72,24 @@ public class AdminAuthInterceptor implements HandlerInterceptor {
             return path.substring(contextPath.length());
         }
         return path;
+    }
+
+    private String resolveToken(HttpServletRequest request) {
+        String authorization = request.getHeader("Authorization");
+        if (StringUtils.hasText(authorization) && authorization.startsWith("Bearer ")) {
+            return authorization.substring("Bearer ".length()).trim();
+        }
+
+        Cookie[] cookies = request.getCookies();
+        if (cookies == null) {
+            return "";
+        }
+        for (Cookie cookie : cookies) {
+            if (AUTH_COOKIE_NAME.equals(cookie.getName()) && StringUtils.hasText(cookie.getValue())) {
+                return cookie.getValue().trim();
+            }
+        }
+        return "";
     }
 
     private void writeError(HttpServletResponse response, int status, String message) throws IOException {

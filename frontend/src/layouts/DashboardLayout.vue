@@ -96,7 +96,7 @@ import { computed, onMounted, reactive, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import type { FormInstance, FormRules } from 'element-plus'
 import { ElMessage } from 'element-plus'
-import { changePassword, getCurrentUser } from '@/api'
+import { changePassword, getCurrentUser, logoutAdmin } from '@/api'
 import { clearAuthSession, getAuthUser, setAuthUser } from '@/auth/session'
 import LocalIcon from '@/components/LocalIcon.vue'
 
@@ -218,6 +218,7 @@ async function submitPassword() {
       newPassword: passwordForm.newPassword
     })
     ElMessage.success('密码已修改，请重新登录')
+    await logoutAdmin().catch(() => undefined)
     clearAuthSession()
     await router.replace('/login')
   } finally {
@@ -225,7 +226,8 @@ async function submitPassword() {
   }
 }
 
-function logout() {
+async function logout() {
+  await logoutAdmin().catch(() => undefined)
   clearAuthSession()
   void router.replace('/login')
 }
